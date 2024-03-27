@@ -252,3 +252,18 @@ export const suggestions = [
     id: "42",
   },
 ];
+
+export const forumlas = [
+  {
+    name: "SUM",
+    id: "1",
+  },
+  {
+    name: "MUL",
+    id: "2",
+  },
+  {
+    name: "DIV",
+    id: "3",
+  },
+];

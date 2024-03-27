@@ -12,6 +12,20 @@ code {
     monospace;
 }
 
+.dropdown-main {
+  list-style: none;
+  position: absolute;
+  flex-wrap: wrap;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  top: 35px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid grey;
+  width: 610px;
+}
+
 /* 
 * box-sizing: border-box html, */
 body {
@@ -24,7 +38,8 @@ body {
 }
 
 .tags-input {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   margin: 0 auto;
   padding: 5px;
   width: 600px;
@@ -38,7 +53,6 @@ body {
 }
 
 input {
-  width: 100%;
   border: none;
   outline: none
 }
@@ -46,6 +60,7 @@ input {
 .tag {
   display: flex;
   width: 200px;
+  width: fit-content;
   justify-content: space-between;
   padding: 2px 5px;
   background-color: #cecece;

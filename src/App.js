@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-
+import { forumlas } from "./data";
 const Tag = (props) => <span className="tag" {...props} />;
 const Delete = (props) => <button className="delete" {...props} />;
 
@@ -9,7 +9,8 @@ const TagsInput = ({ value, onChange }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [names, setNames] = useState([]);
-
+  const [inputVal, setInputVal] = useState("");
+  const [isFormula, setIsFormula] = useState(false);
   const fetchAutocompleteSuggestions = async () => {
     await fetch(`https://652f91320b8d8ddac0b2b62b.mockapi.io/autocomplete`)
       .then((response) => {
@@ -19,12 +20,26 @@ const TagsInput = ({ value, onChange }) => {
         setSuggestions(data);
       });
   };
-
   useEffect(() => {
     fetchAutocompleteSuggestions();
   }, []);
-
+  const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+  useEffect(() => {
+    if (specialCharRegex.test(inputVal)) {
+      const chatacters = inputVal.split("");
+      chatacters.map((char) => {
+        value.push(char);
+        onChange([...value]);
+        return;
+      });
+    }
+  }, [inputVal]);
   const handleChange = (e) => {
+    if (e.target.value[0] === "(") {
+      let newValue = e.target.value.slice(1, -1);
+      e.target.value = newValue;
+      setIsFormula(true);
+    }
     const n = suggestions
       .map((item) => item.name)
       .filter((item) =>
@@ -51,8 +66,10 @@ const TagsInput = ({ value, onChange }) => {
       }
     }
     if (e.keyCode === 8 && value.length && e.target.value === "") {
-      value.pop();
-      onChange([...value]);
+      if (value.length > 1) {
+        value.pop();
+        onChange([...value]);
+      } else onChange([]);
     }
   };
   const handleRemoveTag = (e) => {
@@ -65,16 +82,23 @@ const TagsInput = ({ value, onChange }) => {
   return (
     <div>
       <div className={`tags-input`}>
-        {value.map((tag, index) =>
-          operands.includes(tag) ? (
-            tag
-          ) : (
-            <Tag key={index}>
-              {tag}
-              <Delete onClick={handleRemoveTag} />
-            </Tag>
-          )
-        )}
+        {value.map((tag, index) => {
+          if (
+            (tag === "(" || tag === ")") &&
+            (value[index + 1] === ")" || value[index - 1] === "(")
+          ) {
+            index = index + 2;
+            return;
+          } else
+            return operands.includes(tag) ? (
+              tag
+            ) : (
+              <Tag key={index}>
+                {tag}
+                <Delete onClick={handleRemoveTag} />
+              </Tag>
+            );
+        })}
         <input
           style={{ position: "relative" }}
           type="text"
@@ -82,28 +106,22 @@ const TagsInput = ({ value, onChange }) => {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
         />
-        {showDropdown ? (
-          <ul
-            style={{
-              listStyle: "none",
-              position: "absolute",
-              flexWrap: "wrap",
-              left: "0",
-              margin: "0",
-              padding: "0",
-              top: "35px",
-              display: "flex",
-              flexDirection: "column",
-              border: "1px solid grey",
-              width: "610px",
-            }}
-          >
+        {showDropdown && names.length ? (
+          <ul className="dropdown-main">
             {names.map((name, index) => {
               return (
                 <li
                   className="suggestion-list"
                   onClick={() => {
-                    onChange([...value, name]);
+                    if (isFormula) {
+                      const valuePoped = value.pop();
+                      value.push(name);
+                      value.push(valuePoped);
+                      onChange([...value]);
+                      setIsFormula(false);
+                    } else {
+                      onChange([...value, name]);
+                    }
                     setNewTag("");
                     setShowDropdown(false);
                     inputRef.current.value = "";
@@ -111,6 +129,26 @@ const TagsInput = ({ value, onChange }) => {
                   key={index + name}
                 >
                   {name}
+                </li>
+              );
+            })}
+          </ul>
+        ) : inputRef.current.value !== "" ? (
+          <ul className="dropdown-main">
+            {forumlas.map((formula, index) => {
+              return (
+                <li
+                  className="suggestion-list"
+                  onClick={() => {
+                    onChange([...value, formula.name]);
+                    setNewTag("");
+                    setShowDropdown(false);
+                    setInputVal("()");
+                    inputRef.current.value = "()";
+                  }}
+                  key={index + formula.id}
+                >
+                  {formula.name}
                 </li>
               );
             })}
