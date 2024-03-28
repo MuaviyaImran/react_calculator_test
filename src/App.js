@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { forumlas } from "./data";
+import { suggestionsArray } from "./data";
 const Tag = (props) => <span className="tag" {...props} />;
 const Delete = (props) => <button className="delete" {...props} />;
 
@@ -12,13 +12,13 @@ const TagsInput = ({ value, onChange }) => {
   const [inputVal, setInputVal] = useState("");
   const [isFormula, setIsFormula] = useState(false);
   const fetchAutocompleteSuggestions = async () => {
-    await fetch(`https://652f91320b8d8ddac0b2b62b.mockapi.io/autocomplete`)
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setSuggestions(data);
-      });
+    // await fetch(`https://652f91320b8d8ddac0b2b62b.mockapi.io/autocomplete`)
+    //   .then((response) => {
+    //     return response.json();
+    //   })
+    //   .then((data) => {
+    setSuggestions(suggestionsArray);
+    // });
   };
   useEffect(() => {
     fetchAutocompleteSuggestions();
@@ -33,6 +33,7 @@ const TagsInput = ({ value, onChange }) => {
         return;
       });
     }
+    console.log(inputRef.current);
   }, [inputVal]);
   const handleChange = (e) => {
     if (e.target.value[0] === "(") {
@@ -40,11 +41,10 @@ const TagsInput = ({ value, onChange }) => {
       e.target.value = newValue;
       setIsFormula(true);
     }
-    const n = suggestions
-      .map((item) => item.name)
-      .filter((item) =>
-        item.toLowerCase().includes(e.target.value.toLowerCase())
-      );
+    const n = suggestions.filter((item) =>
+      item.name.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+    console.log(n);
     if (n.length) {
       setShowDropdown(true);
       setNames(n);
@@ -80,81 +80,74 @@ const TagsInput = ({ value, onChange }) => {
   const operands = ["-", "(", "+", "-", "*", "^", "/", ")"];
 
   return (
-    <div>
-      <div className={`tags-input`}>
-        {value.map((tag, index) => {
-          if (
-            (tag === "(" || tag === ")") &&
-            (value[index + 1] === ")" || value[index - 1] === "(")
-          ) {
-            index = index + 2;
-            return;
-          } else
-            return operands.includes(tag) ? (
-              tag
-            ) : (
-              <Tag key={index}>
-                {tag}
+    <div className={`tags-input`}>
+      {value.map((tag, index) => {
+        if (
+          (tag === "(" || tag === ")") &&
+          (value[index + 1] === ")" || value[index - 1] === "(")
+        ) {
+          // index = index + 1;
+          // return <span>{index}</span>;
+        } else {
+          const obj = suggestions.find((item) => item.name === tag);
+
+          return operands.includes(tag) ? (
+            tag
+          ) : (
+            <Tag key={index}>
+              {tag}
+              {obj.category === "property" ? (
                 <Delete onClick={handleRemoveTag} />
-              </Tag>
-            );
-        })}
-        <input
-          style={{ position: "relative" }}
-          type="text"
-          ref={inputRef}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-        />
-        {showDropdown && names.length ? (
-          <ul className="dropdown-main">
-            {names.map((name, index) => {
-              return (
-                <li
-                  className="suggestion-list"
-                  onClick={() => {
-                    if (isFormula) {
-                      const valuePoped = value.pop();
-                      value.push(name);
-                      value.push(valuePoped);
-                      onChange([...value]);
-                      setIsFormula(false);
-                    } else {
-                      onChange([...value, name]);
-                    }
-                    setNewTag("");
-                    setShowDropdown(false);
+              ) : null}
+            </Tag>
+          );
+        }
+      })}
+      <input
+        type="text"
+        ref={inputRef}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+      />
+      {showDropdown && names.length ? (
+        <ul className="dropdown-main">
+          {names.map((suggestion, index) => {
+            return (
+              <li
+                className="suggestion-list"
+                onClick={() => {
+                  if (isFormula) {
+                    const valuePoped = value.pop();
+                    value.push(suggestion.name);
+                    value.push(valuePoped);
+                    onChange([...value]);
                     inputRef.current.value = "";
-                  }}
-                  key={index + name}
-                >
-                  {name}
-                </li>
-              );
-            })}
-          </ul>
-        ) : inputRef.current.value !== "" ? (
-          <ul className="dropdown-main">
-            {forumlas.map((formula, index) => {
-              return (
-                <li
-                  className="suggestion-list"
-                  onClick={() => {
-                    onChange([...value, formula.name]);
+                    setIsFormula(false);
+                  } else if (suggestion.category === "formula") {
+                    onChange([...value, suggestion.name]);
                     setNewTag("");
                     setShowDropdown(false);
                     setInputVal("()");
                     inputRef.current.value = "()";
-                  }}
-                  key={index + formula.id}
-                >
-                  {formula.name}
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
+                    console.log(inputRef.current.value);
+                  } else {
+                    onChange([...value, suggestion.name]);
+                    inputRef.current.value = "";
+                  }
+                  setNewTag("");
+                  setShowDropdown(false);
+
+                  inputRef.current.focus();
+                }}
+                key={index + suggestion.name}
+              >
+                <span>{suggestion.name}</span>
+                <span>{suggestion.category}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 };

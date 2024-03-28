@@ -15,37 +15,37 @@ code {
 .dropdown-main {
   list-style: none;
   position: absolute;
-  flex-wrap: wrap;
-  left: 0;
   margin: 0;
   padding: 0;
   top: 35px;
+  left: 0;
+  max-height: 300px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   border: 1px solid grey;
   width: 610px;
 }
 
-/* 
-* box-sizing: border-box html, */
 body {
   font-family: sans-serif
 }
 
-.container {
-  margin: 0 auto;
-  max-width: 600px
-}
+
 
 .tags-input {
   display: flex;
   flex-wrap: wrap;
   margin: 0 auto;
+  align-items: center;
   padding: 5px;
   width: 600px;
+  gap: 2px;
+  margin-top: 100px;
   font-size: 14px;
   border: #cecece solid 1px;
-  border-radius: 3px
+  border-radius: 3px;
+  position: relative;
 }
 
 .tag {
@@ -54,7 +54,7 @@ body {
 
 input {
   border: none;
-  outline: none
+  outline: none;
 }
 
 .tag {
@@ -68,7 +68,9 @@ input {
 }
 
 .suggestion-list {
-  padding: 10px
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .suggestion-list:hover {
